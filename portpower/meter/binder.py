@@ -56,7 +56,9 @@ class Binder:
         return Binding.from_dict(self._store.get_json(binding_key(berth)))
 
     def current(self, berth: str) -> Binding | None:
-        return self._current.get(berth)
+        # Fall back to the durable binding so a resumed job (possibly in a new
+        # process) can still anchor a plug to the berth.
+        return self._current.get(berth) or self.load(berth)
 
     def unbind(self, berth: str) -> None:
         self._store.delete(binding_key(berth))

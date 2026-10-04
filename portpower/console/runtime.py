@@ -17,6 +17,8 @@ from portpower.disconn.breaker import Breaker
 from portpower.disconn.limit import LimitEnforcer
 from portpower.disconn.protect import Protector
 from portpower.freq.syncer import Syncer
+from portpower.job.engine import JobEngine
+from portpower.job.store import JobStore
 from portpower.meter.binder import Binder
 from portpower.meter.tariff import Tariff
 from portpower.ns.catalog import Catalog
@@ -64,9 +66,13 @@ class Runtime:
     shore: Breaker
     protector: Protector
     limiter: LimitEnforcer
+    jobs: JobEngine
 
 
 def build_runtime(harbor: Harbor, store: RecordStore) -> Runtime:
+    from portpower.console.flows import connect as connect_flow
+    from portpower.console.flows import disconnect as disconnect_flow
+
     catalog = Catalog(CATALOG_CODES)
     berths = BerthRegistry()
     for code in catalog.codes():
@@ -77,11 +83,16 @@ def build_runtime(harbor: Harbor, store: RecordStore) -> Runtime:
     cable_id, cable_rating = SHORE_CABLE
     cables.add(cable_id, cable_rating)
 
-    return Runtime(
+    job_engine = JobEngine(JobStore(store))
+    job_engine.register(connect_flow.definition())
+    job_engine.register(disconnect_flow.definition())
+
+    runtime = Runtime(
         harbor=harbor,
         catalog=catalog,
         store=store,
         ledger=Ledger(store),
+        jobs=job_engine,
         quotas=QuotaManager(store),
         profiles=ProfileRegistry(store),
         fleet=Fleet(),
@@ -102,3 +113,8 @@ def build_runtime(harbor: Harbor, store: RecordStore) -> Runtime:
         protector=Protector(PROTECTION_THRESHOLD, filter_window),
         limiter=LimitEnforcer(ProfileRegistry(store)),
     )
+
+    from portpower.console.recovery import recover
+
+    recover(runtime)
+    return runtime

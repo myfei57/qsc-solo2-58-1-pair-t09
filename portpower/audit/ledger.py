@@ -24,6 +24,26 @@ class Ledger:
 
         return self._store.update_json(LEDGER_KEY, mutate)
 
+    def append_once(self, event: str, detail: str) -> AuditEntry:
+        """Append an audit line, skipping it when an identical line exists.
+
+        Steps may re-run after a crash that happened before the step
+        checkpoint was written; the ledger therefore refuses to duplicate the
+        same ``(event, detail)`` pair.
+        """
+
+        entry = AuditEntry(at=_timestamp(), event=event, detail=detail)
+
+        def mutate(document: object) -> tuple[object, AuditEntry]:
+            entries = self._normalize(document)
+            for existing in entries:
+                if existing.event == event and existing.detail == detail:
+                    return None, existing
+            entries.append(entry)
+            return [item.as_dict() for item in entries], entry
+
+        return self._store.update_json(LEDGER_KEY, mutate)
+
     def entries(self) -> list[AuditEntry]:
         return self._normalize(self._store.get_json(LEDGER_KEY))
 

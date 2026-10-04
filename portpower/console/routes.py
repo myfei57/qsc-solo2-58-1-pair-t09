@@ -12,6 +12,7 @@ from portpower.console.handlers import (
     connect,
     disconnect,
     frequency,
+    job,
     meter,
     quota,
     schedule,
@@ -37,6 +38,11 @@ def build_router(runtime) -> Router:
 
     router.post("/connect", bind(connect.connect, runtime))
     router.post("/disconnect", bind(disconnect.disconnect, runtime))
+
+    router.get("/jobs", bind(job.job_list, runtime))
+    router.get("/job", bind(job.job_detail, runtime))
+    router.post("/job/resume", bind(job.job_resume, runtime))
+    router.post("/job/replay", bind(job.job_replay, runtime))
 
     router.post("/meter", bind(meter.record_reading, runtime))
     router.get("/usage", bind(meter.usage, runtime))
