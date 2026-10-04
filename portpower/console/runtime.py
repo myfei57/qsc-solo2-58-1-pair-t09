@@ -17,6 +17,7 @@ from portpower.disconn.breaker import Breaker
 from portpower.disconn.limit import LimitEnforcer
 from portpower.disconn.protect import Protector
 from portpower.freq.syncer import Syncer
+from portpower.job.ledger import JobLedger
 from portpower.meter.binder import Binder
 from portpower.meter.tariff import Tariff
 from portpower.ns.catalog import Catalog
@@ -45,6 +46,7 @@ class Runtime:
     catalog: Catalog
     store: RecordStore
     ledger: Ledger
+    jobs: JobLedger
     quotas: QuotaManager
     profiles: ProfileRegistry
     fleet: Fleet
@@ -82,6 +84,7 @@ def build_runtime(harbor: Harbor, store: RecordStore) -> Runtime:
         catalog=catalog,
         store=store,
         ledger=Ledger(store),
+        jobs=JobLedger(store),
         quotas=QuotaManager(store),
         profiles=ProfileRegistry(store),
         fleet=Fleet(),

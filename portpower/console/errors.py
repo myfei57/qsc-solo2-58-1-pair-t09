@@ -11,6 +11,12 @@ from portpower.disconn.close import ArmMissing
 from portpower.disconn.limit import LoadExceedsProfile
 from portpower.disconn.parallel import FrequencyOutOfSync
 from portpower.disconn.trip import BreakerAlreadyClosed
+from portpower.job.errors import (
+    JobKindMismatch,
+    JobNotFinished,
+    JobRequestMismatch,
+    StepAlreadySettled,
+)
 from portpower.meter.binder import BindingMissing
 from portpower.meter.meter import MeterFrozen
 from portpower.phase.verifier import PhaseReversed
@@ -34,6 +40,10 @@ CONFLICT_ERRORS: tuple[type[Exception], ...] = (
     NoMeterBinding,
     PlugNotEngaged,
     StoreKeyError,
+    JobKindMismatch,
+    JobRequestMismatch,
+    StepAlreadySettled,
+    JobNotFinished,
 )
 
 
